@@ -1,7 +1,10 @@
 # Learning Neo4j 3.x - Second Edition
 This is the code repository for [Learning Neo4j 3.x - Second Edition](https://www.packtpub.com/big-data-and-business-intelligence/learning-neo4j-3x-second-edition?utm_source=github&utm_medium=repository&utm_campaign=9781786466143), published by [Packt](https://www.packtpub.com/?utm_source=github). It contains all the supporting project files necessary to work through the book from start to finish.
 ## About the Book
-0.00
+Neo4j is a graph database that allows traversing huge amounts of data with ease. This book aims at quickly getting you started with the popular graph database Neo4j.
+
+Starting with a brief introduction to graph theory, this book will show you the advantages of using graph databases along with data modeling techniques for graph databases. You'll gain practical hands-on experience with commonly used and lesser known features for updating graph store with Neo4j's Cypher query language. Furthermore, you'll also learn to create awesome procedures using APOC and extend Neo4j's functionality, enabling integration, algorithmic analysis, and other advanced spatial operation capabilities on data.
+
 ## Instructions and Navigation
 All of the code is organized into folders. Each folder starts with a number followed by the application name. For example, Chapter02.
 
