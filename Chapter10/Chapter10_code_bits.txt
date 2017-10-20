@@ -1,0 +1,42 @@
+CALL dbms.security.createRole('newRoleName')
+CALL dbms.security.deleteRole('newRoleName')
+
+
+CALL dbms.procedures()
+
+
+:server user add
+
+:server user list
+
+
+mkdir data/ldap/environment -p
+mkdir data/ldap/db -p
+
+
+docker run --name="ldapcon" --env LDAP_ORGANISATION="LearningNeo4jWithJerome" --env LDAP_DOMAIN="learningneo4j.com" --env LDAP_BIND_DN="cn=admin,dc=learningneo4j, dc=com" --env LDAP_BASE="dc=learningneo4j, dc=com" --env LDAP_ADMIN_PASSWORD="agentSmith" -p389:389 --volume $HOME/data/ldap/environment:/container/environment/01-custom --detach osixia/openldap:1.1.9
+
+
+docker exec ldapcon ldapadd -x -D "cn=admin,dc=learningneo4j, dc=com" -w agentSmith -f /container/environment/01-custom/users.ldif -H ldap://127.0.0.1/ -v
+
+
+dbms.security.auth_provider=ldap
+dbms.security.ldap.host=ldap://127.0.0.1:389
+dbms.security.ldap.use_starttls=false
+dbms.security.ldap.authentication.mechanism=simple
+dbms.security.ldap.authentication.user_dn_template=cn={0},ou=users,dc=learningneo4j,dc=com
+dbms.security.ldap.authentication.cache_enabled=false
+dbms.security.ldap.authorization.use_system_account=true
+dbms.security.ldap.authorization.system_username=cn=admin,dc=learningneo4j,dc=com
+dbms.security.ldap.authorization.system_password=agentSmith
+dbms.security.ldap.authorization.user_search_base=dc=learningneo4j,dc=com
+dbms.security.ldap.authorization.user_search_filter=(&(objectClass=*)(cn={0}))
+dbms.security.ldap.authorization.group_membership_attributes=memberOf
+dbms.security.ldap.authorization.group_to_role_mapping=\
+ "ou=ldapreaders,dc=learningneo4j,dc=com"= reader; \
+ "ou=ldapproducers,dc=learningneo4j,dc=com"= publisher; \
+ "ou=ldaparchs,dc=learningneo4j,dc=com"=architect; \
+ "ou=ldapadmins,dc=learningneo4j,dc=com"=admin
+
+
+

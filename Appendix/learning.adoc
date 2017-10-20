@@ -1,0 +1,39 @@
+
+== Learning Neo4j
+:author: Jerome BATON
+:twitter: wadael
+
+=== Guides
+
+Guides are very useful to quickly propose read-only queries to users.
+See the arrows, I wrote no distinct source for that. Click it please
+
+=== Add pictures
+
+You can add pictures with this code
+
+[source, text]
+----
+image::https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png[height=150,float=center]
+----
+
+
+image::https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png[height=150,float=center]
+
+Neat.
+
+
+== Queries
+
+=== How many nodes ?
+
+If you click on the query below, it will be copied in the input. You will just have to run it.
+
+[source, cypher]
+----
+MATCH (n) 
+RETURN count(n)
+----
+
+
+

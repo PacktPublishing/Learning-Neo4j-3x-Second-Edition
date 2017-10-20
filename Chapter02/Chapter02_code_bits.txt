@@ -1,0 +1,25 @@
+
+# Installing Docker
+sudo apt-get -y install apt-transport-https ca-certificates curl
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+
+##Preparing the filesystem
+
+cd ~
+mkdir neo4j
+cd neo4j
+mkdir logs
+mkdir data
+
+## Running Neo4j in a Docker container
+
+docker run --rm --publish=7474:7474 --publish=7687:7687 --volume=$HOME/neo4j/data:/data \
+--volume=$HOME/neo4j/logs:/logs neo4j:3.1.2
+
+docker ps
+
+docker stop container_id

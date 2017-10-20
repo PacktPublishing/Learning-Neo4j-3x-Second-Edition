@@ -1,0 +1,28 @@
+MATCH (app:Application)<-[:USES]-(proc:Process)-[:USED_BY]->(bl:BusinessLine)-[:LOCATED_IN]->(b:Building) RETURN DISTINCT app.name AS Application , b.name AS Building ORDER BY app.name ASC; 
+
+
+MATCH (app:Application {name:"Appl_9"})<-[:USES]-(proc:Process)-[:USED_BY]->(bl:BusinessLine)-[:LOCATED_IN]->(b:Building) RETURN DISTINCT app,proc,bl,b; 
+
+
+MATCH (b:Building {name:"Loc_100"}), (rto:RTO {name:"0-2 hrs"})<-[:BUSINESSPROCESS_HAS_RTO]-(bp:BusinessProcess) WITH b,bp MATCH p = ShortestPath(b-[*..3]-bp) RETURN p; 
+
+
+
+match  
+(n1:PRODUCT {id:1})<-[r1]-(:COST_GROUP)<-[r2]-(:COST_TYPE)<-[r3]-(:COST_SUBTYPE)<-[r4]-(:COST)<-[r5]-(n6:COST_COMPONENT) return sum(r1.quantity*r2.quantity*r3.quantity*r4.quantity*r5.quantity*n6.price) as CalculatedPrice; 
+
+
+match (n5:COST)<-[r5]-(n6:COST_COMPONENT) with n5, sum(r5.quantity*n6.price) as Sum set n5.price=Sum; 
+
+
+match (n1:PRODUCT {id:1})<-[r1]-(n2:COST_GROUP) return sum(r1.quantity*n2.price); 
+
+
+
+match (n6:COST_COMPONENT)   with n6, n6.price as OLDPRICE limit 1   set n6.price = n6.price*10   with n6.price-OLDPRICE as PRICEDIFF,n6   
+match n6-[r5:PART_OF]->(n5:COST)-[r4:PART_OF]->(n4:COST_SUBTYPE)-[r3:PART_OF]->(n3:COST_TYPE)-[r2:PART_OF]->(n2:COST_GROUP)-[r1:PART_OF]-(n1:PRODUCT)
+set   n5.price=n5.price+(PRICEDIFF*r5.quantity),   n4.price=n4.price+(PRICEDIFF*r5.quantity*r4.quantity),   n3.price=n3.price+(PRICEDIFF*r5.quantity*r4.quantity*r3.quantity),   n2.price=n2.price+(PRICEDIFF*r5.quantity*r4.quantity*r3.quantity*r2.quantity),   n1.price=n1.price+(PRICEDIFF*r5.quantity*r4.quantity*r3.quantity*r2.quantity*r1.quantity)   
+return PRICEDIFF, n1.price;   
+
+
+

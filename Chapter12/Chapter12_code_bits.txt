@@ -1,0 +1,104 @@
+CALL apoc.refactor.rename.label(oldLabel, newLabel, [nodes])
+CALL apoc.refactor.rename.type(oldType, newType, [rels])
+CALL apoc.refactor.rename.nodeProperty(oldName, newName, [nodes])
+or
+CALL apoc.refactor.rename.typeProperty(oldName, newName, [rels])
+
+
+MATCH (n:Tower) 
+SET n.hasRestaurant = toBoolean("true")
+RETURN n 
+
+
+MATCH (n:Tower) 
+WHERE n.hasRestaurant 
+RETURN n
+
+
+MATCH (n:Tower) 
+WHERE NOT exists(n.hasRestaurant)
+RETURN n
+
+
+CREATE CONSTRAINT ON (t:Tower) ASSERT exists(t.hasRestaurant)
+
+MATCH  n
+DELETE n.property
+
+CALL db.schema()
+
+MATCH (t:Tower) 
+WHERE t.hasRestaurant
+SET t:HasRestaurant
+REMOVE t.hasRestaurant
+RETURN t
+
+
+MATCH (t:Tower)
+MERGE (c:Country {code: t.country})
+CREATE UNIQUE (t)-[:IN_COUNTRY]->(c)
+REMOVE t.country
+RETURN t,c
+
+MATCH (t:Tower)--(c:Country)
+SET t:HasCountry
+
+MATCH (t:Tower)--(c:Country)
+CALL apoc.create.addLabels(id(t), [c.code]) YIELD node
+RETURN node
+
+CREATE (a:FIRST:MERGE {propF1: 'AF1',propF2: 'AF2'}), (b:SECOND:MERGE {propS1: 'BS1',propS2: 'BS2'}), (c:THIRD:MERGE {propT1: 'CT1',propT2: 'CT2',propT3: 'CT3'})
+
+MATCH (n:MERGE)
+RETURN n
+
+MATCH (a:FIRST:MERGE), (b:SECOND:MERGE), (c:THIRD:MERGE)
+CALL apoc.refactor.mergeNodes([a,b,c]) YIELD node 
+RETURN node
+
+MATCH (n:MERGE) 
+DELETE n
+CREATE (a:FIRST:MERGE {propF1: 'AF1',propF2: 'AF2'}), (b:SECOND:MERGE {propS1: 'BS1',propS2: 'BS2',propF2:'VALUE FROM SECOND'}), (c:THIRD:MERGE {propT1: 'CT1',propT2: 'CT2',propT3: 'CT3', propF1:'VALUE OF THIRD'})
+
+
+
+MATCH (n:MERGE)
+DETACH DELETE n
+
+
+
+CREATE (a:FIRST:MERGE {name:'a',propF1: 'AF1',propF2: 'AF2'}), (b:SECOND:MERGE {name:'b',propS1: 'BS1',propS2: 'BS2',propF2:'VALUE FROM SECOND'}), (c:THIRD:MERGE {name:'c',propT1: 'CT1',propT2: 'CT2',propT3: 'CT3', propF1:'VALUE OF THIRD'})
+CREATE (a)-[:A2B]->(b),(b)-[:B2B]->(b),(a)-[:A2C]->(c),(b)-[:B2C]->(c)
+
+
+MATCH (n:MERGE)
+RETURN n
+
+
+MATCH (a:FIRST:MERGE)-[rel:A2B]-(b:SECOND:MERGE)
+CALL apoc.refactor.invert(rel) YIELD output
+RETURN output
+
+
+MATCH (a:FIRST:MERGE)-[rel:A2B]-(b:SECOND:MERGE)
+CALL apoc.refactor.setType(rel,'B2A') YIELD output
+RETURN output
+
+
+MATCH (a:FIRST:MERGE)-[rel:B2A]-(b:SECOND:MERGE), (c:THIRD)
+CALL apoc.refactor.from(rel, c) YIELD output
+RETURN output
+
+
+MATCH ()-[rel:B2B]-(), (a:FIRST)
+CALL apoc.refactor.to(rel, a) YIELD output
+RETURN output
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,199 @@
+CREATE (romeo:Person{name: "Romeo"})-[:LOVES]->(juliet:Person{name:"Juliet"})
+
+MATCH (n)
+RETURN n; 
+
+CREATE (romeo:Person{name: "Romeo"})-[:LOVES]->(juliet:Person{name:"Juliet"})
+
+CREATE (romeo:Person{name: "Romeo"})-[:LOVES]->(juliet:Person{name:"Juliet"})
+CREATE (juliet)-[:LOVES]->(romeo)
+RETURN romeo, juliet;
+
+CREATE (:Person{name: "Romeo"})-[:LOVES]->(:Person{name:"Juliet"})
+
+CREATE (:Person{name: "Romeo"})-[:LOVES]->(:Person{name:"Juliet"})
+CREATE (:Person{name:"Juliet"})-[:LOVES]->(:Person{name: "Romeo"})
+
+
+CREATE (romeo:Teen:Person{firstName: "Romeo", lastName: "Montague", age: 13})-[:LOVES{since:"a long time ago",till:"forever",where: "Verona"}]->(juliet:Teen:Person{name:"Juliet",lastName: "Capulet",age: 13})
+CREATE (romeo)<-[:LOVES]-(juliet)
+
+
+MATCH (n:Person) 
+WHERE n.name="Juliet" or n.firstName="Juliet" 
+RETURN n;
+
+
+MATCH (n:Person)-[:LOVES]-()
+WHERE toLower(n.name)="juliet"
+RETURN n ORDER BY n.age ASC
+SKIP 2 LIMIT 5 ;
+
+
+MATCH (n:Person)-[:LOVES]->()
+
+MATCH (n:Person)<-[:LOVES]-()
+
+MATCH (n:Person{name:"Juliet"})-[:LOVES]-(:Person{name:"Romeo"})
+RETURN n ;
+
+MATCH (n:Person{name:"Juliet"})
+WHERE n.age = 13
+SET n.age=14
+RETURN n ;
+
+MATCH (n:Person)
+SET n.age=n.age+1
+RETURN n ;
+
+
+MATCH (n:Person)
+WHERE n.age>=12 AND n.age <18
+SET n:Teen
+RETURN n ;
+
+
+MATCH (n:Teen:Person)
+WHERE n.age >18
+REMOVE n:Teen
+RETURN n ;
+
+
+MATCH (n:Person)
+WHERE n.age IS NULL
+SET n.age = 0
+RETURN n ;
+
+MATCH (n:Person)
+SET n.age = 0, n.smell="teenSpirit"
+RETURN n ;
+
+MATCH (n:Person)
+SET n.age = 0
+SET n.smell="teenSpirit"
+RETURN n ;
+
+MATCH (r:Person{lastName:"Montague"})
+DELETE r;
+
+MATCH (r:Person{lastName:"Montague"}
+DETACH DELETE r;
+
+MATCH (a:Person {name:"Rik")-[r:OWNS]->(b:Device {brand:"ThatBrand"}) 
+RETURN a,r,b;
+
+CREATE CONSTRAINT ON (p:Person) ASSERT p.identifier IS UNIQUE
+
+DROP CONSTRAINT ON (p:Person) ASSERT p.identifier IS UNIQUE
+
+###############################################################################
+CREATE (leBig:Dude {name: "Lebowski"})
+CREATE (dudeA1:Dude {name: "A1"})
+CREATE (dudeA2:Dude {name: "A2"})
+
+CREATE (leBig)<-[:FRIEND_OF]-(dudeA1)
+CREATE (leBig)<-[:FRIEND_OF]-(dudeA2)
+
+CREATE (dudeB1:Dude {name: "B1"})
+CREATE (dudeB2:Dude {name: "B2"})
+CREATE (dudeB3:Dude {name: "B3"})
+###############################################################################
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB1)
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB2)
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB3)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB1)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB2)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB3)
+
+CREATE (dudeC1:Dude {name: "C1"})
+CREATE (dudeC2:Dude {name: "C2"})
+CREATE (dudeC3:Dude {name: "C3"})
+CREATE (dudeC4:Dude {name: "C4"})
+
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC4)
+
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC4)
+
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC4)
+###############################################################################
+MATCH (d:Dude) RETURN d
+###############################################################################
+MATCH (d:Dude) DETACH DELETE 
+###############################################################################
+MATCH (dudeA1:Dude {name: "A1"})
+MATCH (dudeA2:Dude {name: "A2"})
+MATCH (dudeB1:Dude {name: "B1"})
+MATCH (dudeB2:Dude {name: "B2"})
+MATCH (dudeB3:Dude {name: "B3"})
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB1)
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB2)
+CREATE (dudeA1)<-[:FRIEND_OF]-(dudeB3)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB1)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB2)
+CREATE (dudeA2)<-[:FRIEND_OF]-(dudeB3)
+
+CREATE (dudeC1:Dude {name: "C1"})
+CREATE (dudeC2:Dude {name: "C2"})
+CREATE (dudeC3:Dude {name: "C3"})
+CREATE (dudeC4:Dude {name: "C4"})
+
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB1)<-[:FRIEND_OF]-(dudeC4)
+
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB2)<-[:FRIEND_OF]-(dudeC4)
+
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC1)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC2)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC3)
+CREATE (dudeB3)<-[:FRIEND_OF]-(dudeC4)
+
+
+###############################################################################
+
+MATCH (d:Dude) RETURN d
+
+MATCH (le:Dude {name:"Lebowski"})<-[:FRIEND_OF]-(some:Dude)
+RETURN some
+
+MATCH (le:Dude {name:"Lebowski"})<-[:FRIEND_OF]-(someA:Dude)<-[:FRIEND_OF]-(someB:Dude)
+RETURN someB
+
+MATCH (le:Dude {name:"Lebowski"})<-[:FRIEND_OF*3]-(some:Dude)
+RETURN DISTINCT some
+
+
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+###############################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+

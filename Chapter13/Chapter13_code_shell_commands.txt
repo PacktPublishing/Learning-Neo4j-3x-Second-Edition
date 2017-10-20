@@ -1,0 +1,73 @@
+sudo aptitude install openjdk-8-jdk
+
+scp neo4j.zip pi@192.168.0.20:/home/pi/
+
+
+
+dbms.mode=CORE
+causal_clustering.expected_core_cluster_size=4
+causal_clustering.initial_discovery_members=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000
+causal_clustering.discovery_listen_address=HostsIPAddress:5000
+causal_clustering.transaction_listen_address=HostsIPAddress:6000
+causal_clustering.raft_listen_address=HostsIPAddress:7000
+dbms.connectors.default_advertised_address=HostsIPAddress
+
+
+dbms.connectors.default_listen_address=0.0.0.0
+
+
+dbms.mode=READ_REPLICA
+causal_clustering.expected_core_cluster_size=4
+causal_clustering.initial_discovery_members=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000
+
+# adapt path to the directory where you run it
+tail -f neo4j.log
+
+
+CREATE (:Person:RoleModel {name:'Didier'}), (:Person:Sun {name:'Anny'}), (:Person:Mum {name:'Josiane'}), (:Person:Dad {name:'Jean-Pierre'})
+
+
+cd ~
+mkdir ReadReplicas
+# Repeat lines below for each host
+mkdir ReadReplicas/a/
+mkdir ReadReplicas/a/logs
+mkdir ReadReplicas/a/data
+
+# to create a network where containers see each other, run 
+docker network create --driver=bridge mycluster
+# and add network=mycluster 
+
+
+
+
+
+
+docker run --name=replica-a --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/a/logs:/logs --volume=$HOME/RReplicas/a/data:/data neo4j:3.2.3-enterprise
+
+
+docker run --name=replica-b --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/b/logs:/logs --volume=$HOME/RReplicas/b/data:/data neo4j:3.2.3-enterprise
+
+
+docker run --name=replica-c --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/c/logs:/logs --volume=$HOME/RReplicas/c/data:/data neo4j:3.2.3-enterprise
+
+
+docker run --name=replica-d --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/d/logs:/logs --volume=$HOME/RReplicas/d/data:/data neo4j:3.2.3-enterprise
+
+
+docker run --name=replica-e --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/e/logs:/logs --volume=$HOME/RReplicas/e/data:/data neo4j:3.2.3-enterprise
+
+docker run --name=replica-f --detach --env=NEO4J_dbms_mode=READ_REPLICA --env=NEO4J_causalClustering_expectedCoreClusterSize=4 --env=NEO4J_causalClustering_initialDiscoveryMembers=192.168.0.12:5000,192.168.0.15:5000,192.168.0.11:5000,192.168.0.20:5000 --volume=$HOME/RReplicas/f/logs:/logs --volume=$HOME/RReplicas/f/data:/data neo4j:3.2.3-enterprise
+
+
+
+du -ch |grep total
+
+
+
+CREATE(ju:Person {name:"MonChéri"}), (am:Person {name:"MaPrincesse"})
+
+
+
+
+

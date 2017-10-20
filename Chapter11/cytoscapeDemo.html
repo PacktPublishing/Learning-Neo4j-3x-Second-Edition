@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Neo4j + Cytoscape</title>
+    <style>
+    #cytograph {
+      width: 90%;
+      height: 90%;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+    }
+
+    </style>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.1.4/cytoscape.js"></script>
+    <script src="https://cdn.rawgit.com/neo4j/neo4j-javascript-driver/1.1/lib/browser/neo4j-web.js"></script>
+</head>
+
+<body>
+<h1>Basic cytoscape.js use with neo4j</h1>
+<div id="cytograph"></div>
+
+<script>
+        var fam ; // first object is unix family.
+        fam = new Object();
+        fam.data = {}
+        fam.data['group']= 'nodes';
+        fam.data['id'] = 'UNIX';
+        fam.data['name'] = 'UNIX';
+
+        var neo = neo4j.v1;
+        var driver = neo.driver("bolt://localhost", neo.auth.basic("neo4j", "password")  );
+        var session = driver.session();
+
+        var neoElements = [];
+        neoElements.push( fam );
+
+$(document).ready( function () {
+ session.run('MATCH (n:Os)--(f:OsFamily) RETURN n.name AS nname,f.name AS fname').then
+        (
+        function (result) {
+            var i = 1;
+            result.records.forEach(
+                function (r) {
+                    var nouveau = new Object();
+                        nouveau.data = {}
+                        nouveau.data['group']  = 'nodes';
+                        nouveau.data['id']     = ''+r._fields[0];
+                        nouveau.data['name']   = ''+r._fields[0];
+
+                    var rel = new Object();
+                        rel.data = {}
+                        rel.data['group']   = 'edges'
+                        rel.data['id']      = r._fields[0]+r._fields[1];
+                        rel.data['source']  = ''+r._fields[0];
+                        rel.data['target']  = ''+r._fields[1];
+
+                 neoElements.push( nouveau );
+                 neoElements.push(rel);
+                }
+            );
+        }
+    )
+    .then(
+       function populate(result){
+            var options = {
+              name: 'breadthfirst',
+              fit: true, // whether to fit the viewport to the graph
+              directed: false, // whether the tree is directed downwards (or edges can point in any direction if false)
+              padding: 30, // padding on fit
+              circle: false, // put depths in concentric circles if true, put depths top down if false
+              spacingFactor: 1.75, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes overlap)
+              boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+              avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+              nodeDimensionsIncludeLabels: false, // Excludes the label when calculating node bounding boxes for the layout algorithm
+              roots: undefined, // the roots of the trees
+              maximalAdjustments: 0, // how many times to try to position the nodes in a maximal way (i.e. no backtracking)
+              animate: false, // whether to transition the node positions
+              animationDuration: 500, // duration of animation in ms if enabled
+              animationEasing: undefined, // easing of animation if enabled
+              ready: undefined, // callback on layoutready
+              stop: undefined // callback on layoutstop
+            };
+
+            var cy = cytoscape({ container: document.getElementById('cytograph'),
+                                 elements: [],
+                                 style: cytoscape.stylesheet()
+                                    .selector('node')
+                                      .style({'content': 'data(id)'})
+                                    .selector('edge')
+                                      .style({
+                                        'target-arrow-shape': 'triangle',
+                                        'width': 8,
+                                        'line-color': '#00ff00',
+                                        'target-arrow-color': '#ff0000'
+                                      })
+                                    .selector('.highlighted')
+                                      .style({
+                                        'background-color': '#61bffc',
+                                        'line-color': '#61bffc',
+                                        'target-arrow-color': '#61bffc',
+                                        'transition-property': 'background-color, line-color, target-arrow-color',
+                                        'transition-duration': '0.5s'
+                                      })
+                            });
+    cy.add( neoElements );
+    var leLayout = cy.layout(options);
+    leLayout.run();
+    cy.fit();
+    });
+});
+
+</script>
+</body>
+</html>

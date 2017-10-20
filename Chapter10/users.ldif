@@ -1,0 +1,68 @@
+dn: dc=learningneo4j,dc=com
+dc: learningneo4j
+description: Directory of all the readers
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Readers Directory
+
+dn: ou=users,dc=learningneo4j,dc=com
+ou: users
+objectClass: organizationalRole
+cn: users
+
+# =============================================================== ROLES
+dn: ou=ldapreaders,dc=learningneo4j,dc=com
+objectClass: top
+objectClass: organizationalRole
+roleOccupant: cn=ureader,ou=users,dc=learningneo4j,dc=com
+cn: ldapreaders
+
+dn: ou=ldapproducers,dc=learningneo4j,dc=com
+objectClass: top
+objectClass: organizationalRole
+roleOccupant: cn=uproducer,ou=users,dc=learningneo4j,dc=com
+cn: ldapproducers
+
+dn: ou=ldaparchs,dc=learningneo4j,dc=com
+objectClass: top
+objectClass: organizationalRole
+roleOccupant: cn=uarch,ou=users,dc=learningneo4j,dc=com
+cn: ldaparchs
+
+dn: ou=ldapadmins,dc=learningneo4j,dc=com
+ou: ldapadmins
+objectClass: top
+objectClass: organizationalRole
+roleOccupant: cn=uadmin,ou=users,dc=learningneo4j,dc=com
+cn: ldapadmins
+
+# ================================================================= USERS
+dn: cn=ureader, ou=users,dc=learningneo4j,dc=com
+objectclass: inetOrgPerson
+sn: ureader
+userpassword: ureader
+memberOf: ou=ldapreaders,dc=learningneo4j,dc=com
+cn: ureader
+
+#ou=users,
+dn: cn=uproducer,ou=users,dc=learningneo4j,dc=com
+objectclass: inetOrgPerson
+cn: Producer User
+sn: uproducer
+userpassword: uproducer
+memberOf: ou=ldapproducers,dc=learningneo4j,dc=com
+
+dn: cn=uarch,ou=users,dc=learningneo4j,dc=com
+objectclass: inetOrgPerson
+cn: Architect User
+sn: uarch
+userpassword: uarch
+memberOf: ou=ldaparchs,dc=learningneo4j,dc=com
+
+dn: cn=uadmin, ou=users,dc=learningneo4j,dc=com
+objectclass: inetOrgPerson
+cn: Admin User
+sn: uadmin
+userpassword: uadmin
+memberOf: ou=ldapadmins,dc=learningneo4j,dc=com

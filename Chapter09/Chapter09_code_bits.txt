@@ -1,0 +1,118 @@
+CREATE CONSTRAINT ON (t:Tower) ASSERT t.name IS UNIQUE
+CREATE (paris:Tower {name: "Eiffel Tower",country:"FRA", latitude:48.858093, longitude:2.294694})
+CREATE (vegas:Tower {name: "Vegas Eiffel Tower",country:"USA", latitude:36.112474, longitude:-115.172737})
+CREATE (tokyo:Tower {name: "Tokyo Tower",country:"JPN", latitude:35.659053,longitude:139.745228})
+
+
+
+MATCH (et:Tower {name:'Eiffel Tower'}), (other:Tower)
+RETURN et.name, other.name, round(distance(point(et), point(other))/10)/100 as dist_km
+
+
+MATCH (t1:Tower),(t2:Tower)
+RETURN t1.name, t2.name, round(distance(point(t1), point(t2))/10)/100 as dist_km
+
+
+CALL apoc.help("spatial")
+
+apoc.spatial.geocode.provider=osm
+apoc.spatial.geocode.osm.throttle=5000
+
+
+
+apoc.spatial.geocode.google.throttle=10  
+#delay between queries to not overload servers and/or explose your billing, in ms
+
+apoc.spatial.geocode.google.key=xxxx    
+#API key for google geocode access, like  AIzaSyCGOqPxaXkODpAKg_teles7tprisqu3icro3yaitpren7dre
+
+
+CALL apoc.spatial.geocodeOnce('143 Avenue de Versailles,75016, PARIS FRANCE') YIELD location
+RETURN location.latitude, location.longitude
+
+
+call spatial.procedures()
+
+call spatial.addPointLayer("Paris")
+
+MATCH (etp:Tower {name: "Eiffel Tower"}) 
+CALL spatial.addNode("Paris", etp) YIELD node
+RETURN node
+
+call spatial.addPointLayer("MyWorld")
+
+
+
+
+CREATE (me:Person {name:"me", longitude: 1.1, latitude: 2.2})
+WITH me
+CALL spatial.addNode("MyWorld", me) YIELD node
+RETURN node
+
+CREATE (you:Person {name:"you", longitude: 1.1, latitude: 2.2})
+
+MATCH (you:Person {name:"you"}), (me:Person {name:"me"})
+CREATE (you)-[:READ]->(me)
+
+
+MATCH (n:Person) RETURN n LIMIT 25
+
+CALL spatial.removeLayer("MyWorld")
+
+MATCH (n:Person) RETURN n LIMIT 25
+
+CALL spatial.importOSM("/home/jerome/map_ET_Paris.osm")
+
+MATCH (n) WHERE EXISTS(n.amenity) 
+RETURN DISTINCT n.amenity AS amenity, count(n) as nbr 
+ORDER BY nbr DESC, amenity ASC
+
+CREATE INDEX ON :Label(property)
+
+MATCH (n) WHERE EXISTS(n.amenity)
+SET n:Osm
+
+CREATE INDEX ON :Osm(amenity)
+
+MATCH (n) WHERE EXISTS(n.amenity) 
+WITH n CALL apoc.create.addLabels(n, [n.amenity]) YIELD node
+RETURN count(node)
+
+MATCH (n)-[:TAGS]->(r:restaurant)
+RETURN r.name, n.lat, n.lon
+
+git clone git://github.com/neo4j-contrib/spatial.git
+cd spatial
+mvn clean install -DskipTests=true
+
+mvn dependency:copy-dependencies
+java -cp target/classes:target/dependency/* org.neo4j.gis.spatial.osm.OSMImporter new-osm-db bigBigFile.osm 
+
+CALL spatial.closest('map_ET_Paris.osm', {lat:48.858093, lon:2.294694}, 1) YIELD node 
+MATCH (node)-[:GEOM]-(geo)-[:TAGS]->(t:toilets)
+RETURN coalesce(t.name,"unnamed") as name,coalesce(t.fee,'?') as fee, geo.lat, geo.lon
+
+
+// Removing all spatial layers
+CALL spatial.layers() YIELD name AS name
+WITH collect(name) AS names
+UNWIND names AS nameL
+CALL spatial.removeLayer(nameL)  // enamel layer :)
+call spatial.layers() YIELD name AS name2
+WITH collect(name2) AS emptyNamesList
+RETURN emptyNamesList
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

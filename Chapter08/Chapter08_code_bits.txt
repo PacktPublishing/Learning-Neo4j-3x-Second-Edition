@@ -1,0 +1,74 @@
+docker run -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 mysql
+
+
+CREATE DATABASE learning
+use learning;
+CREATE TABLE operating_systems (id long not null, name VARCHAR(50), familly VARCHAR(50));
+INSERT INTO operating_systems VALUES (1, "DEBIAN", "UNIX");
+INSERT INTO operating_systems VALUES (2, "UBUNTU LINUX", "UNIX");
+INSERT INTO operating_systems VALUES (3, "LINUX MINT", "UNIX");
+INSERT INTO operating_systems VALUES (4, "ANDROID", "UNIX");
+INSERT INTO operating_systems VALUES (5, "KALI LINUX", "UNIX");
+
+
+
+CREATE CONSTRAINT ON (o:Os) ASSERT o.name IS UNIQUE
+CREATE CONSTRAINT ON (of:OsFamily) ASSERT of.name IS UNIQUE
+
+
+CALL apoc.load.driver("com.mysql.jdbc.Driver");
+
+WITH "jdbc:mysql://localhost:3306/learning?user=root" as url
+CALL apoc.load.jdbc(url,"operating_systems") YIELD row AS line
+MERGE (o:Os {name: line.name})
+MERGE (of:OsFamily {name: line.familly})
+MERGE (o)-[:FROM]->(of)
+
+
+MATCH (o:Os)-[:FROM]->(of:OsFamily)
+RETURN o,of
+
+<?xml version="1.0"?>
+<earth>
+ <continent name="Africa">
+    <country name="Morocco" money="Dinar"/>
+ </continent>
+ <continent name="Europe">
+    <country name="France" money="Euro"/>
+    <country name="Germany" money="Euro"/>
+ </continent>
+ <continent name="Asia">
+   <country name="China" money="Yuan"/>
+   <country name="Japan" money="Yen"/>
+ </continent>
+</earth>
+
+
+CREATE CONSTRAINT ON (c:Continent) ASSERT c.name IS UNIQUE
+CREATE CONSTRAINT ON (mo:Money) ASSERT mo.name IS UNIQUE
+
+WITH 'file:///home/jerome/Tools/neo/neo4j-community-3.2.0/import/countries.xml' as url
+CALL apoc.load.xml(url) YIELD value as earth
+UNWIND earth._children as continent
+ MERGE (co:Continent {name: continent.name})
+ WITH continent,co
+ UNWIND continent._children as cou
+ WITH continent, co, cou
+ MERGE (existingCountry:Country {name: cou.name})
+ MERGE (money:Money {name: cou.money})
+ MERGE (existingCountry)-[:INSIDE]->(co)
+ MERGE (existingCountry)-[:HAS_CURRENCY]->(money)
+
+<country>
+ <name>France</name>
+ <money>Euro</money>
+</country>
+
+
+
+
+
+
+
+
+

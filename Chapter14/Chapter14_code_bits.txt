@@ -1,0 +1,28 @@
+match (p1:Person)-[:BOUGHT]->(prod1:Product)<-[:BOUGHT]-(p2:Person)-[:BOUGHT]->(prod2:Product) 
+with p1,p2,count(prod1) as NrOfSharedProducts, collect(prod1) as SharedProducts,prod2 
+where not(p1-[:BOUGHT]->prod2) AND NrOfSharedProducts > 2 
+return p1.name as FirstPerson, p2.name as SecondPerson, extract(x in SharedProducts | x.name) as SharedProducts, prod2.name as RecommendedProduct; 
+
+
+
+
+MATCH (p:Person)-[b:BOUGHT]->(prod1:Product)-[:MADE_BY]->(br:Brand)<-[MADE_BY]-(prod2:Product) 
+WITH p, br, prod2, count(prod1) as NrOfBrandProducts 
+WHERE not(p-[:BOUGHT]->prod2) and NrOfBrandProducts > 1 
+RETURN p.name as Person, br.name as Brand, collect(prod2.name) as RecommendedProducts 
+ORDER BY Person ASC; 
+
+
+match (p:Person)-[b:BOUGHT]->(prod:Product),p<-[r1]-(parent:Person)-[r2]->(sibling:Person) 
+where type(r1) in ["MOTHER_OF","FATHER_OF"] and type(r2) in ["MOTHER_OF","FATHER_OF"] 
+and not(sibling-[:BOUGHT]->prod) 
+return p.name as Person, prod.name as RecommendedProduct, collect(sibling.name) as ForSiblings;
+
+
+match (p1:Person)-[:BOUGHT]->(prod1:Product)<-[:BOUGHT]-(p2:Person)-[:BOUGHT]->(prod2:Product), p1<-[r1]-(parent:Person)-[r2]->p2, prod1-[:MADE_BY]->(br:Brand)<-[:MADE_BY]-(prod2) 
+where type(r1) in ["MOTHER_OF","FATHER_OF"] and type(r2) in ["MOTHER_OF","FATHER_OF"] and not(p1-[:BOUGHT]->prod2) 
+return p1.name as FirstPerson, p2.name as SecondPerson, br.name as Brand, prod2.name as RecommendedProduct; 
+
+
+
+

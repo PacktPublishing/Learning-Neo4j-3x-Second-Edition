@@ -1,0 +1,45 @@
+:param title:"Unforgiven"
+
+MATCH (n:Movie) 
+WHERE n.title=$title
+RETURN n 
+
+
+MATCH (n:Movie) 
+WHERE n.title={title}
+RETURN n 
+
+:params
+
+
+:POST /db/data/cypher
+{
+"query" : "MATCH (n:Movie {title: {title}}) RETURN n",
+"params" : {"title" : "Unforgiven"}
+}
+
+
+CREATE INDEX ON :LabelName(propertyName)
+
+CALL db.indexes
+
+MATCH (t:Tower {name: ""})
+ USING INDEX t:Tower(name)
+ RETURN ...
+
+MATCH (t:Location:Tower)
+USING SCAN t:Tower
+WHERE t.country='JPN'
+RETURN t
+
+MATCH (n),(m)
+RETURN n,m
+
+
+
+
+
+
+
+
+

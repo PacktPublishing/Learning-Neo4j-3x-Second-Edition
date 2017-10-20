@@ -1,0 +1,331 @@
+package learningneo4j;
+
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
+
+
+public class OddEven {
+    @UserFunction
+    @Description("Returns true if the given number is odd")
+    public Boolean isOdd(@Name("number") Long number){
+        if(number!=null) return number%2==1;
+        else
+            return false;
+    }
+
+    @UserFunction
+    @Description("Returns true if the given number is even")
+    public Boolean isEven(@Name("number") Long number){
+        if(number!=null) return number%2==0;
+        else
+            return false;
+    }
+
+}
+
+
+
+
+mvn clean package
+
+CREATE (t:Test {val:15})
+
+MATCH (t:Test) WHERE learningneo4j.isOdd(t.val)
+RETURN t
+
+CREATE CONSTRAINT ON (ln:LastName) ASSERT ln.lastName IS UNIQUE
+
+MATCH (n:LastName)
+
+@Procedure
+@Description("Regroup all :Person nodes to newly (re)created :LastName nodes. Recreates all.")
+public void regroupByLastName() {
+
+    /* We assume
+        CREATE CONSTRAINT ON (ln:LastName) ASSERT ln.lastName IS UNIQUE
+    has been run but you can add it to this procedure as an exercise.
+    */
+
+    Driver driver = GraphDatabase.driver("bolt://localhost", 
+                            AuthTokens.basic("neo4j", "password"));
+
+    try (Session session = driver.session()) {
+        try (Transaction tx = session.beginTransaction()) {
+            tx.run("MATCH (ln:LastName) DETACH DELETE (ln)");
+
+            tx.run("MATCH (p:Person) " +
+                    "WITH learningneo4j.getLastWord(p.name) as lw, p " +
+                    "MERGE (ln:LastName {lastName: lw}) " +
+                    "WITH ln,p,lw " +
+                    "CREATE (p)-[:IS_NAMED]->(ln)");
+
+            tx.success();
+        }
+    }
+}
+
+MATCH (ln:LastName) DETACH DELETE (ln)
+
+###############################################################################
+
+MATCH (p:Person) 
+WITH learningneo4j.getLastWord(p.name) as lw, p 
+MERGE (ln:LastName {lastName: lw}) 
+WITH ln,p,lw 
+CREATE (p)-[:IS_NAMED]->(ln)
+
+###############################################################################
+
+MATCH (p:Person) 
+
+WITH learningneo4j.getLastWord(p.name) as lw, p 
+MERGE (ln:LastName {lastName: lw}) 
+
+WITH ln,p 
+CREATE (p)-[:IS_NAMED]->(ln)
+
+###############################################################################
+
+MATCH (a)<-[r:IS_NAMED]-(p:Person) 
+RETURN a,r,p LIMIT 50
+
+###############################################################################
+
+@Procedure(mode = Mode.WRITE)
+public Stream<StringResult> regroupByLastNameVerbose() {
+    /* We assume
+        CREATE CONSTRAINT ON (ln:LastName) ASSERT ln.lastName IS UNIQUE
+    has been run
+    */
+
+    Driver driver = GraphDatabase.driver("bolt://localhost", 
+                         AuthTokens.basic("neo4j", "password"));
+
+    try (Session session = driver.session()) {
+        try (Transaction tx = session.beginTransaction()) {
+            tx.run("MATCH (ln:LastName) DETACH DELETE (ln)");
+
+            StatementResult result = tx.run("MATCH (p:Person) " +
+                    "WITH learningneo4j.getLastWord(p.name) as lw, p " +
+                    "MERGE (ln:LastName {lastName: lw}) " +
+                    "WITH ln,p,lw " +
+                    "CREATE (p)-[:IS_NAMED]->(ln) "
+            +       " RETURN ln.lastName");
+
+            tx.success();
+            return result.list(r -> new StringResult(r.get(0).toString()) ).stream();
+        }
+    }
+}
+
+###############################################################################
+
+MATCH (p:Person)-[IS_NAMED]-(ln:LastName)
+RETURN ln.lastName, count(p)
+
+###############################################################################
+
+package learningneo4j;
+
+import org.neo4j.procedure.*;
+
+public class RandomCount {
+    @UserAggregationFunction("learningneo4j.randomCount")
+    @Description( "learningneo4j.randomCount - mostly returns a wrong value " )
+    public RandomAggregator randomAggregator() {
+        return new RandomAggregator();
+    }
+
+    public static class RandomAggregator {
+        private long count;
+
+        @UserAggregationUpdate
+        public void repeated(@Name("string") Object obj ){ // parameter given as example
+            count +=1;
+        }
+
+        @UserAggregationResult
+        public Long result(){
+            return Long.valueOf( (int)(count * Math.random() + 0.5) );
+        }
+    }
+}
+
+###############################################################################
+
+MATCH (ln:LastName)--(p:Person)
+RETURN ln, learningneo4j.randomCount(p.lastName) AS badcount
+
+###############################################################################
+
+<dependency>
+  <groupId>org.neo4j</groupId>
+  <artifactId>neo4j</artifactId>
+  <version>${neo4j.version}</version><!-- This is a Maven property  -->
+  <scope>provided</scope>
+</dependency>
+
+<dependency>
+  <groupId>javax.ws.rs</groupId>
+  <artifactId>javax.ws.rs-api</artifactId>
+  <version>2.0</version>
+  <scope>provided</scope>
+</dependency>
+
+###############################################################################
+
+package learningneo4j;
+
+import org.neo4j.graphdb.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.List;
+
+@Path("/persons")
+public class PersonResource {
+
+    private final GraphDatabaseService database;
+
+    public PersonResource( @javax.ws.rs.core.Context GraphDatabaseService database )  {
+        this.database = database;
+    }
+
+    @GET
+    @Path("/lastnames")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String getLastNames(){
+        try (Transaction tx = database.beginTx() ) { // A transaction is mandatory
+            ResourceIterator<Node> nodes = database.findNodes(Label.label("LastName"));
+            List<String> lastNames = new ArrayList<String>();
+            Node n = null;
+            while (nodes.hasNext()) {
+                n = nodes.next();
+                lastNames.add((String) n.getProperty("lastName"));
+            }
+            nodes.close();
+            tx.success();
+            return lastNames.toString();
+        }
+    }
+}
+
+###############################################################################
+
+dbms.unmanaged_extension_classes=learningneo4j=/learningneo4j
+
+###############################################################################
+
+http://localhost:7474/learningneo4j/persons/lastnames
+
+###############################################################################
+
+package learningneo4j;
+
+import org.codehaus.jackson.JsonEncoding;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+
+import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.OUTGOING;
+
+@Path("/friends")
+public class FriendsResource {
+    private GraphDatabaseService graphDb;
+    private final ObjectMapper objectMapper;
+
+    private static final RelationshipType FRIEND_OF = RelationshipType.withName("FRIEND_OF");
+    private static final Label PERSON = Label.label("Person");
+
+    public FriendsResource(@Context GraphDatabaseService graphDb) {
+        this.graphDb = graphDb;
+        this.objectMapper = new ObjectMapper();
+    }
+
+    @GET
+    @Path("/{personName}")
+    public Response findFriends(@PathParam("personName") final String personName) {
+        StreamingOutput stream = new StreamingOutput() {
+            @Override
+            public void write(OutputStream os) throws IOException, WebApplicationException {
+                JsonGenerator streamingOutput = objectMapper.getJsonFactory().createJsonGenerator(os, JsonEncoding.UTF8);
+                streamingOutput.writeStartObject();
+                streamingOutput.writeFieldName("friends");
+                streamingOutput.writeStartArray();
+
+                try (Transaction tx = graphDb.beginTx();
+                     ResourceIterator<Node> persons = 
+                               graphDb.findNodes(PERSON, "name", personName)) {
+                    while (persons.hasNext()) {
+                        Node person = persons.next();
+                        for (Relationship relationshipTo : person.getRelationships(FRIEND_OF, OUTGOING)) {
+                            Node friend = relationshipTo.getEndNode();
+                            streamingOutput.writeString(friend.getProperty("name").toString());
+                        }
+                        for (Relationship relationshipFrom : person.getRelationships(FRIEND_OF, INCOMING)) {
+                            Node friendComing = relationshipFrom.getStartNode();
+                            streamingOutput.writeString(friendComing.getProperty("name").toString());
+                        }
+                    }
+                    tx.success();
+                }
+                streamingOutput.writeEndArray();
+                streamingOutput.writeEndObject();
+                streamingOutput.flush();
+                streamingOutput.close();
+            }
+        };
+        return Response.ok().entity(stream).type(MediaType.APPLICATION_JSON).build();
+    }
+}
+
+###############################################################################
+
+<dependency>
+  <groupId>org.codehaus.jackson</groupId>
+  <artifactId>jackson-mapper-asl</artifactId>
+  <version>1.9.7</version>
+  <scope>provided</scope>
+</dependency>
+
+###############################################################################
+
+MATCH p=()-[r:FRIEND_OF]->() RETURN p LIMIT 25
+
+###############################################################################
+
+return Response.ok().entity(stream).type(MediaType.APPLICATION_JSON).build();
+
+###############################################################################
+
+
+
+
+
+
+
+
+
