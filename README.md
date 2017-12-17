@@ -37,6 +37,3 @@ In the later chapters, two laptops, several Raspberry Pis, and Docker containers
 * [Neo4j High Performance](https://www.packtpub.com/big-data-and-business-intelligence/neo4j-high-performance?utm_source=github&utm_medium=repository&utm_campaign=9781783555154)
 
 * [Neo4j Essentials](https://www.packtpub.com/big-data-and-business-intelligence/neo4j-essentials?utm_source=github&utm_medium=repository&utm_campaign=9781783555178)
-
-### Suggestions and Feedback
-[Click here](https://docs.google.com/forms/d/e/1FAIpQLSe5qwunkGf6PUvzPirPDtuy1Du5Rlzew23UBp2S-P3wB-GcwQ/viewform) if you have any feedback or suggestions.
